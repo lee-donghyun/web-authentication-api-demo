@@ -32,7 +32,7 @@ export default function Home() {
         <meta name="description" content="Web Authentication API Demo" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <main className="p-5">
+      <main className="p-5 overflow-hidden">
         <h1 className="font-serif text-6xl break-words font-extrabold pr-10">
           Web
           <br />
@@ -52,14 +52,14 @@ export default function Home() {
                 navigator.credentials
                   .create({
                     publicKey: {
-                      challenge: new ArrayBuffer(0),
+                      challenge: new ArrayBuffer(12),
                       pubKeyCredParams: [],
                       rp: {
                         name: "RP_NAME",
                       },
                       user: {
                         displayName: "USER_DISPLAY_NAME",
-                        id: new ArrayBuffer(0),
+                        id: new ArrayBuffer(12),
                         name: "USER_NAME",
                       },
                     },
@@ -68,7 +68,8 @@ export default function Home() {
                     setCredential(c);
                     setState("CREATED");
                   })
-                  .catch(() => {
+                  .catch((err) => {
+                    console.log(err);
                     setState("ERROR");
                   });
               } else {
@@ -80,7 +81,7 @@ export default function Home() {
           </button>
         </div>
         <div className={c.divider}></div>
-        <div className="overflow-visible px-3">
+        <div className="px-3">
           <div
             className="space-x-5 w-max duration-200"
             style={{ transform: `translateX(${getStateTagOffset(state)})` }}
