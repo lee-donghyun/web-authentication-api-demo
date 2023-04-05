@@ -3,7 +3,7 @@ import { useState } from "react";
 
 const c = {
   button:
-    "bg-black active:opacity-50 duration-200 text-white rounded-l-full rounded-r-full p-4 text-xl",
+    "active:opacity-50 duration-200 rounded-l-full rounded-r-full p-4 text-xl",
   divider: "bg-black h-px my-8",
 };
 
@@ -11,6 +11,7 @@ const STATES = [
   { name: "READY", c: "bg-zinc-200" },
   { name: "LOADING", c: "bg-blue-200 text-blue-700" },
   { name: "CREATED", c: "bg-green-200 text-green-700" },
+  { name: "GOT", c: "bg-cyan-200 text-cyan-700" },
   { name: "ERROR", c: "bg-red-200 text-red-700" },
   { name: "NOT_SUPPORTED", c: "bg-zinc-200" },
 ] as const;
@@ -43,9 +44,9 @@ export default function Home() {
           Demo
         </h1>
         <div className={c.divider}></div>
-        <div>
+        <div className="flex gap-5">
           <button
-            className={c.button}
+            className={`bg-black text-white ${c.button}`}
             onClick={() => {
               if (navigator.credentials) {
                 setState("LOADING");
@@ -69,7 +70,7 @@ export default function Home() {
                     setState("CREATED");
                   })
                   .catch((err) => {
-                    console.log(err);
+                    console.error(err);
                     setState("ERROR");
                   });
               } else {
@@ -78,6 +79,30 @@ export default function Home() {
             }}
           >
             CREATE
+          </button>
+          <button
+            className={`bg-zinc-200 ${c.button}`}
+            onClick={() => {
+              if (navigator.credentials) {
+                setState("LOADING");
+                navigator.credentials
+                  .get({
+                    publicKey: { challenge: new ArrayBuffer(12) },
+                  })
+                  .then((c) => {
+                    setCredential(c);
+                    setState("GOT");
+                  })
+                  .catch((err) => {
+                    console.error(err);
+                    setState("ERROR");
+                  });
+              } else {
+                setState("NOT_SUPPORTED");
+              }
+            }}
+          >
+            GET
           </button>
         </div>
         <div className={c.divider}></div>
@@ -101,6 +126,13 @@ export default function Home() {
             })}
           </div>
         </div>
+        {credential && (
+          <div className="bg-black font-mono text-white mt-8 p-3 text-sm">
+            <p className="break-words whitespace-pre-line">
+              {`user credential\n\ncredential.id="${credential.id}"\ncredentail.type="${credential.type}"`}
+            </p>
+          </div>
+        )}
       </main>
       <footer className="pt-48 pb-24">
         <a
