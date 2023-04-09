@@ -1,6 +1,7 @@
 import { getBuffer } from "@/service/util";
 import Head from "next/head";
 import { useState } from "react";
+import { decode } from "cbor";
 
 const c = {
   button:
@@ -29,6 +30,24 @@ export default function Home() {
   const [credential, setCredential] = useState<null | PublicKeyCredential>(
     null
   );
+
+  if (credential) {
+    const attestationObject = decode(
+      (credential.response as AuthenticatorAttestationResponse)
+        .attestationObject
+    );
+    const publicKeyBytes = attestationObject.authData.slice(33, 65);
+    const publicKey = crypto.subtle
+      .importKey(
+        "raw",
+        publicKeyBytes,
+        { name: "ECDSA", namedCurve: "P-256" },
+        true,
+        ["verify"]
+      )
+      .then(console.log)
+      .catch((...args) => console.error(args));
+  }
 
   return (
     <>
@@ -60,7 +79,7 @@ export default function Home() {
                       challenge: getBuffer(),
                       pubKeyCredParams: [
                         {
-                          alg: -7,
+                          alg: -7, // "ES256" as registered in the IANA COSE Algorithms registry
                           type: "public-key",
                         },
                       ],
