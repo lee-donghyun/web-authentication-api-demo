@@ -1,3 +1,4 @@
+import { getBuffer } from "@/service/util";
 import Head from "next/head";
 import { useState } from "react";
 
@@ -25,7 +26,10 @@ const getStateTagOffset = (state: typeof STATES[number]["name"]) => {
 
 export default function Home() {
   const [state, setState] = useState<typeof STATES[number]["name"]>("READY");
-  const [credential, setCredential] = useState<null | Credential>(null);
+  const [credential, setCredential] = useState<null | PublicKeyCredential>(
+    null
+  );
+
   return (
     <>
       <Head>
@@ -53,20 +57,25 @@ export default function Home() {
                 navigator.credentials
                   .create({
                     publicKey: {
-                      challenge: new ArrayBuffer(12),
-                      pubKeyCredParams: [],
+                      challenge: getBuffer(),
+                      pubKeyCredParams: [
+                        {
+                          alg: -7,
+                          type: "public-key",
+                        },
+                      ],
                       rp: {
                         name: "RP_NAME",
                       },
                       user: {
                         displayName: "USER_DISPLAY_NAME",
-                        id: new ArrayBuffer(12),
+                        id: getBuffer(),
                         name: "USER_NAME",
                       },
                     },
                   })
                   .then((c) => {
-                    setCredential(c);
+                    setCredential(c as PublicKeyCredential);
                     setState("CREATED");
                   })
                   .catch((err) => {
@@ -87,10 +96,10 @@ export default function Home() {
                 setState("LOADING");
                 navigator.credentials
                   .get({
-                    publicKey: { challenge: new ArrayBuffer(12) },
+                    publicKey: { challenge: getBuffer() },
                   })
                   .then((c) => {
-                    setCredential(c);
+                    setCredential(c as PublicKeyCredential);
                     setState("GOT");
                   })
                   .catch((err) => {
@@ -129,7 +138,14 @@ export default function Home() {
         {credential && (
           <div className="bg-black font-mono text-white mt-8 p-3 text-sm">
             <p className="break-words whitespace-pre-line">
-              {`user credential\n\ncredential.id="${credential.id}"\ncredentail.type="${credential.type}"`}
+              {[
+                `user credential\n`,
+                `credential.id="${credential.id}"`,
+                `credentail.type="${credential.type}"`,
+                `credential.response.clientDataJSON="${new TextDecoder().decode(
+                  credential.response.clientDataJSON
+                )}`,
+              ].join(`\n`)}
             </p>
           </div>
         )}
